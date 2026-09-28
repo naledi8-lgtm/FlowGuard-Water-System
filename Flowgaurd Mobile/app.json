@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "FlowGuard",
+    "slug": "flowguard",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": { "backgroundColor": "#0B3C5D" },
+    "ios": {
+      "bundleIdentifier": "com.flowguard.app",
+      "supportsTablet": false,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "FlowGuard uses your location to pin an issue report or centre the water map on your area. You can always type your area instead.",
+        "NSCameraUsageDescription": "FlowGuard uses your camera to attach photo evidence to an issue report.",
+        "NSPhotoLibraryUsageDescription": "FlowGuard needs access to attach a photo to an issue report."
+      }
+    },
+    "android": {
+      "package": "com.flowguard.app",
+      "permissions": ["ACCESS_FINE_LOCATION", "CAMERA"],
+      "config": { "googleMaps": { "apiKey": "YOUR_GOOGLE_MAPS_API_KEY" } }
+    },
+    "plugins": ["expo-location", "expo-image-picker", "expo-notifications"],
+    "extra": { "eas": { "projectId": "YOUR_EAS_PROJECT_ID" } }
+  }
+}

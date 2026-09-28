@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>FlowGuard Admin</title>
+<style>
+  :root {
+    --harbor: #0B3C5D; --current: #146B9E; --foam: #E7F5FB;
+    --advisory: #F0B429; --warning: #E8790C; --critical: #D6304A; --clear: #2F9E5C;
+    --ink: #10202B; --slate: #4B5D68; --cloud: #F5F8FA;
+  }
+  body { font-family: system-ui, sans-serif; background: var(--cloud); margin: 0; color: var(--ink); }
+  header { background: var(--harbor); color: white; padding: 16px 24px; }
+  main { max-width: 900px; margin: 24px auto; padding: 0 16px; }
+  .card { background: white; border-radius: 10px; padding: 16px; margin-bottom: 12px; border-left: 5px solid var(--current); }
+  .card.advisory { border-left-color: var(--advisory); }
+  .card.warning { border-left-color: var(--warning); }
+  .card.critical { border-left-color: var(--critical); }
+  .card.clear { border-left-color: var(--clear); }
+  form { background: white; padding: 16px; border-radius: 10px; margin-bottom: 24px; }
+  input, select, textarea { display: block; width: 100%; margin: 6px 0 12px; padding: 8px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+  button { background: var(--current); color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; }
+  h2 { color: var(--harbor); }
+</style>
+</head>
+<body>
+<header><h1>FlowGuard Admin</h1></header>
+<main>
+  <h2>Publish an alert</h2>
+  <form id="alertForm">
+    <input name="title" placeholder="Title" required />
+    <textarea name="description" placeholder="Description" required></textarea>
+    <select name="severity">
+      <option value="advisory">Advisory</option>
+      <option value="warning">Warning</option>
+      <option value="critical">Critical</option>
+    </select>
+    <input name="area" placeholder="Area / suburb" required />
+    <input name="lat" placeholder="Latitude" type="number" step="any" required />
+    <input name="lng" placeholder="Longitude" type="number" step="any" required />
+    <label><input type="checkbox" name="notifyOffline" style="width:auto;display:inline"/> Also SMS offline-registered users in this area</label>
+    <button type="submit">Publish alert</button>
+  </form>
+
+  <h2>Active alerts</h2>
+  <div id="alerts"></div>
+</main>
+<script>
+async function loadAlerts() {
+  const res = await fetch('/api/alerts');
+  const alerts = await res.json();
+  document.getElementById('alerts').innerHTML = alerts.map(a =>
+    `<div class="card ${a.severity}"><strong>${a.title}</strong> — ${a.area}<p>${a.description}</p></div>`
+  ).join('');
+}
+
+document.getElementById('alertForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const f = new FormData(e.target);
+  await fetch('/api/alerts', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      title: f.get('title'), description: f.get('description'), severity: f.get('severity'),
+      area: f.get('area'), lat: Number(f.get('lat')), lng: Number(f.get('lng')),
+      notifyOffline: f.get('notifyOffline') === 'on'
+    })
+  });
+  e.target.reset();
+  loadAlerts();
+});
+
+loadAlerts();
+</script>
+</body>
+</html>

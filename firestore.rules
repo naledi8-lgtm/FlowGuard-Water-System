@@ -1,0 +1,39 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() { return request.auth != null; }
+    // Set this custom claim on your admin accounts via the Firebase Admin
+    // SDK (from the Python or C# service, one-time setup) - never trust a
+    // client-side "isAdmin" field, since a user could edit their own doc.
+    function isAdmin() { return isSignedIn() && request.auth.token.admin == true; }
+
+    match /alerts/{alertId} {
+      allow read: if true; // public safety info - no login wall, even for USSD-registered users
+      allow write: if isAdmin(); // published from the C# admin dashboard only
+    }
+
+    match /issueReports/{reportId} {
+      allow create: if true; // supports anonymous reports from the app AND from USSD
+      allow read: if isAdmin() || (isSignedIn() && resource.data.reporterId == request.auth.uid);
+      allow update, delete: if isAdmin();
+    }
+
+    match /users/{userId} {
+      allow read, write: if isSignedIn() && request.auth.uid == userId;
+      allow read: if isAdmin();
+    }
+
+    match /smsSubscribers/{phoneNumber} {
+      // Only the USSD/SMS service (using the Admin SDK, which bypasses
+      // these rules entirely) and admins should ever touch this collection -
+      // it holds phone numbers, so treat it as sensitive under POPIA.
+      allow read, write: if isAdmin();
+    }
+
+    match /suppliers/{supplierId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+  }
+}
